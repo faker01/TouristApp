@@ -1,3 +1,4 @@
+/*
 package com.example.touristapp.fragmets
 
 import android.Manifest
@@ -245,4 +246,4 @@ class MapV2Fragment: Fragment(), LocationListener {
     override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
     override fun onProviderEnabled(provider: String) {}
     override fun onProviderDisabled(provider: String) {}
-}
+}*/

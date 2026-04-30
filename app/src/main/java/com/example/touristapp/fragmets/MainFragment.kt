@@ -34,6 +34,9 @@ class MainFragment : Fragment() {
         binding.btnMap.setOnClickListener {
             findNavController().navigate(R.id.action_main_to_map)
         }
+        binding.btnQuest.setOnClickListener {
+            findNavController().navigate(R.id.action_main_to_quest)
+        }
     }
 
     override fun onDestroyView() {
