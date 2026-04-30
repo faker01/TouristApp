@@ -68,7 +68,7 @@ object QuestData {
                 ),
                 QuestTask(
                     id = 2, text = "Исследуй фасад Музея Изобразительных Искусств. Подсчитай количество окон — это число холстов, видевших кражу колдуна.",
-                    type = TaskType.NUMBER_INPUT, correctAnswer = "photo", sparkReward = 1,
+                    type = TaskType.NUMBER_INPUT, correctAnswer = "photo", sparkReward = 1, //!!!!
                     hint = "Обойди здание и тщательно посчитай все окна."
                 ),
                 QuestTask(

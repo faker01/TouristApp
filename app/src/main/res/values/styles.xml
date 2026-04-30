@@ -1,0 +1,9 @@
+<resources>
+    <style name="PixelTextStyle">
+        <item name="android:textColor">#FFD700</item>
+        <item name="android:fontFamily">monospace</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:lineSpacingExtra">8dp</item>
+    </style>
+</resources>

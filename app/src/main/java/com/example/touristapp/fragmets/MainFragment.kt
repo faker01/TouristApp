@@ -35,7 +35,17 @@ class MainFragment : Fragment() {
             findNavController().navigate(R.id.action_main_to_map)
         }
         binding.btnQuest.setOnClickListener {
-            findNavController().navigate(R.id.action_main_to_quest)
+            // Проверяем, нужно ли показывать пролог
+            val prefs = requireActivity().getSharedPreferences("quest_prefs", android.content.Context.MODE_PRIVATE)
+            val prologueShown = prefs.getBoolean("prologue_shown", false)
+
+            if (!prologueShown) {
+                // Если пролог не показан - идём к нему
+                findNavController().navigate(R.id.action_main_to_prologue)
+            } else {
+                // Если уже показывали - сразу на квест
+                findNavController().navigate(R.id.action_main_to_quest)
+            }
         }
     }
 

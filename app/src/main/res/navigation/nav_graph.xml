@@ -12,6 +12,8 @@
         <action android:id="@+id/action_main_to_attractions" app:destination="@id/attractionsFragment" />
         <action android:id="@+id/action_main_to_map" app:destination="@id/mapFragment" />
         <action android:id="@+id/action_main_to_quest" app:destination="@id/questFragment" />
+        <!-- Новое действие -->
+        <action android:id="@+id/action_main_to_prologue" app:destination="@id/prologueFragment" />
     </fragment>
 
     <fragment
@@ -44,5 +46,15 @@
         android:id="@+id/questFinalFragment"
         android:name="com.example.touristapp.fragments.QuestFinalFragment"
         android:label="QuestFinalFragment" />
+
+    <fragment
+        android:id="@+id/prologueFragment"
+        android:name="com.example.touristapp.fragments.PrologueFragment"
+        android:label="Prologue">
+        <action
+            android:id="@+id/action_prologue_to_quest"
+            app:destination="@id/questFragment" />
+    </fragment>
+
 
 </navigation>
