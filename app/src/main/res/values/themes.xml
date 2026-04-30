@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Основная тема приложения — наследуется от AppCompat, совместима с AppCompatActivity -->
+    <style name="Theme.TouristApp" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">#7E7E7E</item>
+        <item name="colorPrimaryDark">#00008B</item>
+        <item name="colorAccent">#4CAF50</item>
+        <item name="android:windowBackground">#FFFFFF</item>
+        <item name="android:statusBarColor">#FFFFFF</item>
+        <item name="android:navigationBarColor">#FFFFFF</item>
+    </style>
+
+    <!-- Стиль для кнопок с закруглёнными углами (используется в fragment_main.xml) -->
+    <style name="RoundedButton" parent="Widget.MaterialComponents.Button">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">56dp</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="cornerRadius">28dp</item>
+    </style>
+
+</resources>

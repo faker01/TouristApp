@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/mainFragment">
+
+    <fragment
+        android:id="@+id/mainFragment"
+        android:name="com.example.touristapp.fragments.MainFragment"
+        android:label="MainFragment" >
+        <action
+            android:id="@+id/action_main_to_routes"
+            app:destination="@id/routesFragment" />
+        <action
+            android:id="@+id/action_main_to_attractions"
+            app:destination="@id/attractionsFragment" />
+        <action
+            android:id="@+id/action_main_to_map"
+            app:destination="@id/mapFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/routesFragment"
+        android:name="com.example.touristapp.fragments.RoutesFragment"
+        android:label="RoutesFragment" >
+        <action
+            android:id="@+id/action_routes_to_map"
+            app:destination="@id/mapFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/attractionsFragment"
+        android:name="com.example.touristapp.fragments.AttractionsFragment"
+        android:label="AttractionsFragment" >
+        <action
+            android:id="@+id/action_attractions_to_map"
+            app:destination="@id/mapFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/mapFragment"
+        android:name="com.example.touristapp.fragments.MapFragment"
+        android:label="MapFragment" />
+</navigation>
