@@ -2,6 +2,7 @@ package com.example.touristapp.data
 
 import com.example.touristapp.models.*
 
+/* весь файл будет удалён по завершению раюоты над csv форматом хранения*/
 object QuestData {
 
     val locations: List<QuestLocation> = listOf(

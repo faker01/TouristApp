@@ -82,8 +82,7 @@ class PrologueFragment : Fragment() {
     }
 
     private fun startQuest() {
-        val prefs = requireActivity().getSharedPreferences("quest_prefs", android.content.Context.MODE_PRIVATE)
-        prefs.edit().putBoolean("prologue_shown", true).apply()
+
         findNavController().navigate(R.id.action_prologue_to_quest)
     }
 }
