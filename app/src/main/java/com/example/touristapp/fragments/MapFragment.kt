@@ -52,6 +52,7 @@ class MapFragment: Fragment(), LocationListener {
     private var attractionsCollection: MapObjectCollection? = null;
 
     private lateinit var drivingRouter: com.yandex.mapkit.directions.driving.DrivingRouter
+    private var drivingSession: DrivingSession? = null
     private val drivingRouteListener = object : DrivingSession.DrivingRouteListener {
         override fun onDrivingRoutes(drivingRoutes: MutableList<DrivingRoute>) {
             if (drivingRoutes.isEmpty()) return
@@ -241,6 +242,8 @@ class MapFragment: Fragment(), LocationListener {
     private fun getRoute(yandexMap: Map, selected: List<Attraction>) {
         android.util.Log.d("MapFragment", "Строим маршрут из ${selected.size} точек")
 
+        drivingSession?.cancel()
+
         val drivingOptions = DrivingOptions().apply {
             routesCount = 1
         }
@@ -270,7 +273,7 @@ class MapFragment: Fragment(), LocationListener {
         } }
         android.util.Log.d("MapFragment", "Точки: $points")
 
-        drivingRouter.requestRoutes(
+        drivingSession = drivingRouter.requestRoutes(
             points,
             drivingOptions,
             vehicleOptions,
@@ -296,6 +299,7 @@ class MapFragment: Fragment(), LocationListener {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        drivingSession?.cancel()
 
         routeBuildingJob?.cancel()
         if (isLocationUpdatesActive && ::locationManager.isInitialized) {
