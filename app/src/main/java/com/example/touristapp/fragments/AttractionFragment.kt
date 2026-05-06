@@ -11,21 +11,13 @@ import com.example.touristapp.R
 import com.example.touristapp.adapters.AttractionsAdapter
 import com.example.touristapp.databinding.FragmentAttractionsBinding
 import com.example.touristapp.models.Attraction
+import com.example.touristapp.data.AttractionsData
 
 class AttractionsFragment : Fragment() {
 
     private var _binding: FragmentAttractionsBinding? = null
     private val binding get() = _binding!!
     private lateinit var adapter: AttractionsAdapter
-
-    // Список мест с реальными координатами (пример для Калининграда)
-    private val attractionsList = listOf(
-        Attraction("Собор", 54.7065, 20.5090),
-        Attraction("Музей океана", 54.7044, 20.4994),
-        Attraction("Рыбная деревня", 54.7030, 20.5095),
-        Attraction("Форт №5", 54.7240, 20.4550),
-        Attraction("Королевские ворота", 54.7210, 20.5155)
-    )
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -43,7 +35,7 @@ class AttractionsFragment : Fragment() {
         }
 
         binding.btnDone.setOnClickListener {
-            val selected = attractionsList.filter { it.isSelected }
+            val selected = AttractionsData.all.filter { it.isSelected }
             if (selected.isNotEmpty()) {
                 val bundle = Bundle().apply {
                     putSerializable("selected_attractions", ArrayList(selected))
@@ -52,7 +44,7 @@ class AttractionsFragment : Fragment() {
             }
         }
 
-        adapter = AttractionsAdapter(attractionsList) { attraction, isChecked ->
+        adapter = AttractionsAdapter(AttractionsData.all) { attraction, isChecked ->
             attraction.isSelected = isChecked
         }
 
