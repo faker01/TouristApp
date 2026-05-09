@@ -40,6 +40,8 @@ import com.yandex.mapkit.map.MapObjectTapListener
 import com.yandex.runtime.image.ImageProvider
 import kotlinx.coroutines.Job
 import com.yandex.runtime.Error
+import com.example.touristapp.AppState
+
 
 class MapFragment: Fragment(), LocationListener {
 
@@ -47,6 +49,8 @@ class MapFragment: Fragment(), LocationListener {
     private val binding get() = _binding!!
 
     private lateinit var locationManager: LocationManager
+    private var adminUserLocation: Array<Double> = arrayOf(54.710325, 20.510053)
+    private var adminMode: Boolean = false
 
     private var userPlacemark: PlacemarkMapObject? = null
     private var attractionsCollection: MapObjectCollection? = null;
@@ -58,7 +62,9 @@ class MapFragment: Fragment(), LocationListener {
             if (drivingRoutes.isEmpty()) return
 
             val route = drivingRoutes[0]
-            binding.mapView.mapWindow.map.mapObjects.addPolyline(route.geometry).apply {
+            // Удаляем старый маршрут и рисуем новый
+            currentPolyline?.let { binding.mapView.mapWindow.map.mapObjects.remove(it) }
+            currentPolyline = binding.mapView.mapWindow.map.mapObjects.addPolyline(route.geometry).apply {
                 setStrokeColor(0xFF3390FF.toInt())
             }
         }
@@ -75,6 +81,11 @@ class MapFragment: Fragment(), LocationListener {
 
     private var routeBuildingJob: Job? = null
     private var isLocationUpdatesActive = false
+
+    // Список выбранных точек маршрута — нужен для перестройки при движении
+    private var selectedAttractions: List<Attraction>? = null
+    // Следование за пользователем активно когда есть маршрут
+    private var isFollowing = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -97,6 +108,13 @@ class MapFragment: Fragment(), LocationListener {
         attractionsCollection = yandexMap.mapObjects.addCollection()
 
         initLocationUpdates()
+
+        adminMode = AppState.isAdmin
+        if (adminMode)
+        {
+            adminUserLocation = getUserLocation() ?: arrayOf(54.710325, 20.510053)
+        }
+
         setUserLocation(yandexMap)
 
         val selected = arguments
@@ -104,9 +122,11 @@ class MapFragment: Fragment(), LocationListener {
 
         if (selected != null) {
             // пришли из AttractionsFragment — показываем выбранные места
+            selectedAttractions = selected
+            isFollowing = true
             getAttractions(yandexMap, selected)
             drivingRouter = DirectionsFactory.getInstance().createDrivingRouter(DrivingRouterType.COMBINED)
-            getRoute(yandexMap, selected)
+            getRoute(yandexMap, getUserLocation(), selected)
         } else {
             // пришли просто с кнопки "Карта" — показываем все
             getAttractions(yandexMap)
@@ -126,12 +146,46 @@ class MapFragment: Fragment(), LocationListener {
             yandexMap.move(CameraPosition(cam.target, cam.zoom - 1, 0.0f, 0.0f))
         }
 
-        /*binding.btnStart.setOnClickListener {
-            currentRoutePoints?.let { attractions ->
-                if (attractions.isNotEmpty()) openNavigator(attractions)
-            }
-        }*/
+        // Показываем крестовину только в adminMode
+        if (adminMode) {
+            binding.layoutAdminControls.visibility = View.VISIBLE
 
+            binding.btnMoveRight.setOnClickListener {
+                // move=1: lon+
+                val newPos = setAdminUserLocation(yandexMap, 1) ?: return@setOnClickListener
+                yandexMap.move(CameraPosition(Point(newPos[0], newPos[1]), yandexMap.cameraPosition.zoom, 0.0f, 0.0f))
+
+                userPlacemark?.geometry = Point(newPos[0], newPos[1])
+                updateLocation(newPos[0], newPos[1])
+            }
+
+            binding.btnMoveUp.setOnClickListener {
+                // move=2: lat+
+                val newPos = setAdminUserLocation(yandexMap, 2) ?: return@setOnClickListener
+                yandexMap.move(CameraPosition(Point(newPos[0], newPos[1]), yandexMap.cameraPosition.zoom, 0.0f, 0.0f))
+
+                userPlacemark?.geometry = Point(newPos[0], newPos[1])
+                updateLocation(newPos[0], newPos[1])
+            }
+
+            binding.btnMoveLeft.setOnClickListener {
+                // move=3: lon-
+                val newPos = setAdminUserLocation(yandexMap, 3) ?: return@setOnClickListener
+                yandexMap.move(CameraPosition(Point(newPos[0], newPos[1]), yandexMap.cameraPosition.zoom, 0.0f, 0.0f))
+
+                userPlacemark?.geometry = Point(newPos[0], newPos[1])
+                updateLocation(newPos[0], newPos[1])
+            }
+
+            binding.btnMoveDown.setOnClickListener {
+                // move=4: lat-
+                val newPos = setAdminUserLocation(yandexMap, 4) ?: return@setOnClickListener
+                yandexMap.move(CameraPosition(Point(newPos[0], newPos[1]), yandexMap.cameraPosition.zoom, 0.0f, 0.0f))
+
+                userPlacemark?.geometry = Point(newPos[0], newPos[1])
+                updateLocation(newPos[0], newPos[1])
+            }
+        }
     }
     // пользовательская локация
     private fun initLocationUpdates() {
@@ -164,11 +218,31 @@ class MapFragment: Fragment(), LocationListener {
         }
     }
 
+    private fun setAdminUserLocation(yandexMap: Map, move: Int): Array<Double>?{
+        if (move == 1){
+            adminUserLocation[1] += 0.0001
+            return adminUserLocation
+        }
+        if (move == 2){
+            adminUserLocation[0] += 0.0001
+            return adminUserLocation
+        }
+        if (move == 3){
+            adminUserLocation[1] -= 0.0001
+            return adminUserLocation
+        }
+        if (move == 4){
+            adminUserLocation[0] -= 0.0001
+            return adminUserLocation
+        }
+        return null
+    }
+
     private fun setUserLocation(yandexMap: Map){
 
         var currentUserPosition = getUserLocation()
 
-        if (currentUserPosition.isEmpty())
+        if (currentUserPosition == null)
         {
             currentUserPosition = arrayOf(54.710325, 20.510053)
         }
@@ -185,7 +259,11 @@ class MapFragment: Fragment(), LocationListener {
 
     }
 
-    private fun getUserLocation(): Array<Double> {
+    private fun getUserLocation(): Array<Double>? {
+        if (adminMode && !adminUserLocation.isEmpty())
+        {
+            return adminUserLocation
+        }
         if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
             == PackageManager.PERMISSION_GRANTED
         ) {
@@ -195,13 +273,37 @@ class MapFragment: Fragment(), LocationListener {
                 return arrayOf(it.latitude, it.longitude)
             }
         }
-        return arrayOf()
+        return null
     }
 
     override fun onLocationChanged(location: Location) {
-        val point = Point(location.latitude, location.longitude)
-        binding.mapView.mapWindow.map.move(CameraPosition(point, 12.0f, 0.0f, 0.0f))
+        if (adminMode) return
+
+        updateLocation(location.latitude, location.longitude)
+    }
+
+    private fun updateLocation(lat: Double, lon: Double){
+
+        val point = Point(lat, lon)
+
         userPlacemark?.geometry = point
+
+        // Следование камеры за пользователем
+        if (isFollowing) {
+            binding.mapView.mapWindow.map.move(
+                CameraPosition(point, binding.mapView.mapWindow.map.cameraPosition.zoom, 0.0f, 0.0f)
+            )
+            // Перестраиваем маршрут от новой позиции
+            selectedAttractions?.let { attractions ->
+                if (::drivingRouter.isInitialized) {
+                    getRoute(
+                        binding.mapView.mapWindow.map,
+                        arrayOf(lat, lon),
+                        attractions
+                    )
+                }
+            }
+        }
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
@@ -239,9 +341,7 @@ class MapFragment: Fragment(), LocationListener {
         }
     }
 
-    private fun getRoute(yandexMap: Map, selected: List<Attraction>) {
-        android.util.Log.d("MapFragment", "Строим маршрут из ${selected.size} точек")
-
+    private fun getRoute(yandexMap: Map, userPointCoordinates: Array<Double>?, selected: List<Attraction>) {
         drivingSession?.cancel()
 
         val drivingOptions = DrivingOptions().apply {
@@ -249,9 +349,7 @@ class MapFragment: Fragment(), LocationListener {
         }
         val vehicleOptions = VehicleOptions()
 
-        val userPointCoordinates = getUserLocation()
-
-        val points = buildList { add(
+        val points = buildList { if (userPointCoordinates != null) add(
             RequestPoint(
                 Point(userPointCoordinates[0], userPointCoordinates[1]),
                 RequestPointType.WAYPOINT,
@@ -261,17 +359,16 @@ class MapFragment: Fragment(), LocationListener {
             )
         )
             selected.forEach { point ->
-            add(
-                RequestPoint(
-                    Point(point.lat, point.lon),
-                    RequestPointType.WAYPOINT,
-                    null,
-                    null,
-                    null
+                add(
+                    RequestPoint(
+                        Point(point.lat, point.lon),
+                        RequestPointType.WAYPOINT,
+                        null,
+                        null,
+                        null
+                    )
                 )
-            )
-        } }
-        android.util.Log.d("MapFragment", "Точки: $points")
+            } }
 
         drivingSession = drivingRouter.requestRoutes(
             points,
