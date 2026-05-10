@@ -30,7 +30,6 @@ class PrologueFragment : Fragment() {
         tvPrologueText = view.findViewById(R.id.tvPrologueText)
         btnStartQuest = view.findViewById(R.id.btnStartQuest)
 
-        // Применяем стиль
         tvPrologueText.setTextColor(resources.getColor(android.R.color.holo_orange_dark, null))
         tvPrologueText.typeface = android.graphics.Typeface.MONOSPACE
 
@@ -41,7 +40,6 @@ class PrologueFragment : Fragment() {
                 "Собери 7 осколков, освободи хомлинов\n" +
                 "и спаси Янтарный край!"
 
-        // Плавное появление через ViewPropertyAnimator (более простой способ)
         prologueContainer.alpha = 0f
         prologueContainer.animate()
             .alpha(1f)
@@ -64,7 +62,6 @@ class PrologueFragment : Fragment() {
                     index++
                     handler.postDelayed(this, delayPerChar)
                 } else {
-                    // Показываем кнопку
                     btnStartQuest.visibility = Button.VISIBLE
                     btnStartQuest.alpha = 0f
                     btnStartQuest.animate()
@@ -82,7 +79,21 @@ class PrologueFragment : Fragment() {
     }
 
     private fun startQuest() {
+        val csvFileName = arguments?.getString("csv_file_name") ?: "Homlini_1_dedKarl.csv"
+        val questRouteId = arguments?.getInt("quest_route_id", 0) ?: 0
+        val firstPointLat = arguments?.getDouble("first_point_lat", 54.7065) ?: 54.7065
+        val firstPointLon = arguments?.getDouble("first_point_lon", 20.5090) ?: 20.5090
+        val firstPointTitle = arguments?.getString("first_point_title", "Собор") ?: "Собор"
 
-        findNavController().navigate(R.id.action_prologue_to_quest)
+        val bundle = Bundle().apply {
+            putString("csv_file_name", csvFileName)
+            putInt("quest_route_id", questRouteId)
+            putInt("current_point_index", 0)  // первая точка
+            putDouble("point_lat", firstPointLat)
+            putDouble("point_lon", firstPointLon)
+            putString("point_title", firstPointTitle)
+        }
+        // Меняем на переход к временной карте
+        findNavController().navigate(R.id.action_prologue_to_quest_map, bundle)
     }
 }

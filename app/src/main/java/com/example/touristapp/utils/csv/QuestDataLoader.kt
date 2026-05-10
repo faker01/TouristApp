@@ -12,9 +12,9 @@ import com.example.touristapp.models.LoadedQuestData
  * 2. Сборку связей между элементами
  * 3. Предоставление удобного доступа к данным
  */
-class QuestDataLoader(private val context: Context) {
+class QuestDataLoader(private val context: Context, private val csvFileName: String? = null) {
 
-    private val csvParser = CsvParser(context)
+    private val csvParser = CsvParser(context, csvFileName)
 
     /**
      * Загружает и собирает все данные квеста

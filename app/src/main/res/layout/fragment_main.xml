@@ -72,16 +72,17 @@
             android:layout_marginTop="16dp"
             android:backgroundTint="#FF8C00" />
 
+
         <Button
-            android:id="@+id/btn_quest"
+            android:id="@+id/btn_admin"
             android:layout_width="match_parent"
             android:layout_height="56dp"
-            android:text="Квест: Хомлины"
+            android:layout_marginTop="16dp"
+            android:backgroundTint="#8B00FF"
+            android:text="Admin"
             android:textColor="@android:color/white"
             android:textSize="16sp"
-            android:textStyle="bold"
-            android:layout_marginTop="16dp"
-            android:backgroundTint="#8B00FF" />
+            android:textStyle="bold" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

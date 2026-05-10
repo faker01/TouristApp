@@ -12,7 +12,6 @@
         <action android:id="@+id/action_main_to_attractions" app:destination="@id/attractionsFragment" />
         <action android:id="@+id/action_main_to_map" app:destination="@id/mapFragment" />
         <action android:id="@+id/action_main_to_quest" app:destination="@id/questFragment" />
-        <!-- Новое действие -->
         <action android:id="@+id/action_main_to_prologue" app:destination="@id/prologueFragment" />
     </fragment>
 
@@ -21,6 +20,10 @@
         android:name="com.example.touristapp.fragments.RoutesFragment"
         android:label="RoutesFragment">
         <action android:id="@+id/action_routes_to_map" app:destination="@id/mapFragment" />
+        <action android:id="@+id/action_routes_to_prologue" app:destination="@id/prologueFragment" />
+        <action
+            android:id="@+id/action_routes_to_quest_map"
+            app:destination="@id/questMapFragment" />
     </fragment>
 
     <fragment
@@ -33,7 +36,11 @@
     <fragment
         android:id="@+id/mapFragment"
         android:name="com.example.touristapp.fragments.MapFragment"
-        android:label="MapFragment" />
+        android:label="MapFragment">
+        <action
+            android:id="@+id/action_map_to_quest"
+            app:destination="@id/questFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/questFragment"
@@ -53,6 +60,21 @@
         android:label="Prologue">
         <action
             android:id="@+id/action_prologue_to_quest"
+            app:destination="@id/questFragment" />
+        <action
+            android:id="@+id/action_prologue_to_map"
+            app:destination="@id/mapFragment" />
+        <action
+            android:id="@+id/action_prologue_to_quest_map"
+            app:destination="@id/questMapFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/questMapFragment"
+        android:name="com.example.touristapp.fragments.QuestMapFragment"
+        android:label="QuestMapFragment">
+        <action
+            android:id="@+id/action_quest_map_to_quest"
             app:destination="@id/questFragment" />
     </fragment>
 

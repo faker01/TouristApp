@@ -11,6 +11,7 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.touristapp.R
 import com.example.touristapp.models.*
+import com.example.touristapp.utils.RouteProgressManager
 import com.example.touristapp.utils.csv.QuestDataLoader
 
 class QuestFragment : Fragment() {
@@ -31,6 +32,11 @@ class QuestFragment : Fragment() {
     private lateinit var csvQuestData: LoadedQuestData
     private var currentElementId: String? = null
 
+    // ДЛЯ ВОЗВРАТА НА КАРТУ
+    private var isFromRoute = false
+    private var routeIndex = 0
+    private var completedPointIndex = 0
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         return inflater.inflate(R.layout.fragment_quest, container, false)
     }
@@ -39,24 +45,30 @@ class QuestFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         bindViews(view)
 
+        // Получаем аргументы
+        isFromRoute = arguments?.getBoolean("from_route", false) ?: false
+        routeIndex = arguments?.getInt("route_index", 0) ?: 0
+        completedPointIndex = arguments?.getInt("point_index", 0) ?: 0
+
         progress = arguments?.getSerializable("quest_progress") as? QuestProgress ?: QuestProgress()
         tvSparks.text = "✨ ${progress.sparks} Искр"
 
         // Загружаем CSV
-        val loader = QuestDataLoader(requireContext())
+        val csvFileName = arguments?.getString("csv_file_name") ?: "Homlini_1_dedKarl.csv"
+        val loader = QuestDataLoader(requireContext(), csvFileName)
         csvQuestData = loader.loadQuest()
         currentElementId = csvQuestData.startDialogueId
 
         if (currentElementId == null) {
             Toast.makeText(requireContext(), "Ошибка загрузки квеста", Toast.LENGTH_SHORT).show()
-            findNavController().popBackStack()
+            finishFragment()
             return
         }
 
         showCurrentElement()
 
         view.findViewById<ImageButton>(R.id.btn_back_quest)?.setOnClickListener {
-            findNavController().popBackStack()
+            finishFragment()
         }
     }
 
@@ -76,7 +88,7 @@ class QuestFragment : Fragment() {
 
     private fun showCurrentElement() {
         val element = csvQuestData.getElementById(currentElementId ?: return) ?: run {
-            finishQuest()
+            finishFragment()
             return
         }
 
@@ -106,8 +118,8 @@ class QuestFragment : Fragment() {
 
     private fun showTask(task: TaskModel) {
         hideAllInputs()
-        btnNextTask.visibility = View.GONE  // <-- Явно скрываем
-        btnNextTask.setOnClickListener(null) // <-- Очищаем слушатель
+        btnNextTask.visibility = View.GONE
+        btnNextTask.setOnClickListener(null)
         tvFeedback.visibility = View.GONE
         btnCheck.isEnabled = true
 
@@ -164,21 +176,17 @@ class QuestFragment : Fragment() {
             tvFeedback.text = "✅ Верно! +${task.sparkReward} Искр"
             tvFeedback.visibility = View.VISIBLE
 
-            // Сохраняем следующий элемент
             val nextId = task.nextElementId
             currentElementId = nextId
 
-            // Показываем кнопку "Далее"
             btnNextTask.visibility = View.VISIBLE
             btnNextTask.text = "Далее →"
 
-            // Отключаем кнопки ввода
             btnCheck.isEnabled = false
             layoutInput.visibility = View.GONE
             layoutChoices.visibility = View.GONE
             btnPhoto.visibility = View.GONE
 
-            // Устанавливаем обработчик для кнопки "Далее"
             btnNextTask.setOnClickListener {
                 btnNextTask.visibility = View.GONE
                 tvFeedback.visibility = View.GONE
@@ -187,7 +195,7 @@ class QuestFragment : Fragment() {
                 if (nextId != null) {
                     showCurrentElement()
                 } else {
-                    finishQuest()
+                    finishFragment()
                 }
             }
         } else {
@@ -207,13 +215,21 @@ class QuestFragment : Fragment() {
             .setCancelable(false)
 
         if (result.isFinal) {
-            builder.setPositiveButton("В главное меню") { _, _ ->
-                findNavController().popBackStack()
+            if (isFromRoute) {
+                val progressManager = RouteProgressManager(requireContext())
+                progressManager.completeQuestRoute(routeIndex)
+
+                builder.setPositiveButton("К маршрутам") { _, _ ->
+                    findNavController().popBackStack(R.id.routesFragment, false)
+                }
+            } else {
+                builder.setPositiveButton("В главное меню") { _, _ ->
+                    findNavController().popBackStack()
+                }
             }
         } else {
             builder.setPositiveButton("Продолжить") { _, _ ->
-                currentElementId = null // нет следующего
-                finishQuest()
+                finishFragment()
             }
         }
         builder.show()
@@ -234,15 +250,8 @@ class QuestFragment : Fragment() {
             .show()
     }
 
-    private fun finishQuest() {
-        AlertDialog.Builder(requireContext())
-            .setTitle("Квест завершён")
-            .setMessage("Ты заработал ${progress.sparks} Искр!")
-            .setPositiveButton("В главное меню") { _, _ ->
-                findNavController().popBackStack()
-            }
-            .setCancelable(false)
-            .show()
+    private fun finishFragment() {
+        findNavController().popBackStack()
     }
 
     private fun addSparks(amount: Int) {

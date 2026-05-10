@@ -3,16 +3,16 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
+val mapkitApiKey: String by rootProject.extra
+
 android {
     namespace = "com.example.touristapp"
-    compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
-    }
+    compileSdk = 36
 
     buildFeatures {
         viewBinding = true
+        buildConfig = true
+        compose = true
     }
 
     defaultConfig {
@@ -23,6 +23,7 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "MAPKIT_API_KEY", "\"${mapkitApiKey}\"")
     }
 
     buildTypes {
@@ -34,12 +35,10 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
-    }
-    buildFeatures {
-        compose = true
     }
 }
 

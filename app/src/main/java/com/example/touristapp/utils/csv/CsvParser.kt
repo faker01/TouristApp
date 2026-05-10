@@ -5,16 +5,17 @@ import com.example.touristapp.models.*
 
 /**
  * Парсер CSV файла для загрузки данных квеста
- *
- * CSV файл должен лежать в: app/src/main/assets/quest_data.csv
  */
-class CsvParser(private val context: Context) {
+class CsvParser(private val context: Context, private val csvFileName: String? = null) {
 
     companion object {
         private const val COLUMN_SEPARATOR = ";;"
         private const val PART_SEPARATOR = "::"
-        private const val CSV_FILE_NAME = "quest_data.csv"
+        private const val DEFAULT_CSV_FILE_NAME = "Homlini_1_dedKarl.csv"
     }
+
+    private val actualFileName: String
+        get() = csvFileName ?: DEFAULT_CSV_FILE_NAME
 
     fun loadQuestData(): Triple<Map<String, DialogueModel>, Map<String, TaskModel>, Map<String, ResultModel>> {
         val dialogues = mutableMapOf<String, DialogueModel>()
@@ -23,12 +24,12 @@ class CsvParser(private val context: Context) {
 
         val csvContent = readCsvFile()
         if (csvContent == null) {
-            println("CsvParser: CSV файл не найден в assets")
+            println("CsvParser: CSV файл '$actualFileName' не найден в assets")
             return Triple(dialogues, tasks, results)
         }
 
         val lines = csvContent.split("\n")
-        val dataLines = lines.drop(1) // пропускаем заголовок
+        val dataLines = lines.drop(1)
 
         var dialogueCounter = 0
         var taskCounter = 0
@@ -79,35 +80,12 @@ class CsvParser(private val context: Context) {
 
     private fun readCsvFile(): String? {
         return try {
-            // Пробуем разные пути
-            val paths = listOf(
-                "quest_data.csv",
-                "csv/quest_data.csv",
-                "data/quest_data.csv"
-            )
-
-            for (path in paths) {
-                try {
-                    val inputStream = context.assets.open(path)
-                    val content = inputStream.bufferedReader().use { it.readText() }
-                    println("✅ CSV найден по пути: $path, размер: ${content.length}")
-                    return content
-                } catch (e: Exception) {
-                    println("❌ Путь $path не работает: ${e.message}")
-                }
-            }
-
-            // Если ничего не нашли, выводим список всех файлов в assets
-            try {
-                val allFiles = context.assets.list("")
-                println("📁 Все файлы в assets: ${allFiles?.joinToString() ?: "null"}")
-            } catch (e: Exception) {
-                println("Не удалось получить список assets: ${e.message}")
-            }
-
-            null
+            val inputStream = context.assets.open(actualFileName)
+            val content = inputStream.bufferedReader().use { it.readText() }
+            println("CsvParser: Файл '$actualFileName' прочитан, размер: ${content.length} символов")
+            content
         } catch (e: Exception) {
-            println("Общая ошибка: ${e.message}")
+            println("CsvParser: Ошибка чтения файла '$actualFileName' - ${e.message}")
             null
         }
     }
