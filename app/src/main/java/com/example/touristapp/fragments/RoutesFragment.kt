@@ -22,6 +22,21 @@ class RoutesFragment : Fragment() {
     private lateinit var adapter: RoutesAdapter
     private lateinit var db: DbConnection
 
+    // ВРЕМЕННОЕ ХРАНИЛИЩЕ ПРОГРЕССА (в памяти)
+    companion object {
+        private val completedQuestChains = mutableSetOf<Int>()
+
+        fun addCompletedQuestChain(chainId: Int) {
+            completedQuestChains.add(chainId)
+        }
+
+        fun resetProgress() {
+            completedQuestChains.clear()
+        }
+
+        fun getCompletedChains(): Set<Int> = completedQuestChains
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -39,9 +54,57 @@ class RoutesFragment : Fragment() {
             findNavController().popBackStack()
         }
 
-        val routes = db.getAllRoutes()
+        updateRoutesList()
+    }
 
-        adapter = RoutesAdapter(routes) { route ->
+    override fun onResume() {
+        super.onResume()
+        // Обновляем список при возврате из квеста
+        updateRoutesList()
+    }
+
+    fun completeQuestChain(chainId: Int) {
+        completedQuestChains.add(chainId)
+        updateRoutesList()
+    }
+
+    private fun updateRoutesList() {
+        // ============================================================
+        // 1. КВЕСТОВЫЕ ЦЕПОЧКИ
+        // ============================================================
+        val allQuestChains = RouteQuestData.getQuestChains()
+
+        // Определяем, какие цепочки разблокированы
+        val unlockedChains = allQuestChains.map { chain ->
+            val isUnlocked = chain.id == 0 || (chain.id - 1) in completedQuestChains
+            chain.copy(isLocked = !isUnlocked)
+        }
+
+        if (unlockedChains.isNotEmpty()) {
+            binding.questSection.visibility = View.VISIBLE
+
+            val questAdapter = QuestChainsAdapter(unlockedChains) { chain ->
+                if (!chain.isLocked) {
+                    val bundle = Bundle().apply {
+                        putString("csv_file_name", chain.csvFileName)
+                        putInt("quest_chain_id", chain.id)
+                    }
+                    findNavController().navigate(R.id.action_routes_to_quest, bundle)
+                }
+            }
+
+            binding.rvQuestRoutes.layoutManager = LinearLayoutManager(requireContext())
+            binding.rvQuestRoutes.adapter = questAdapter
+        } else {
+            binding.questSection.visibility = View.GONE
+        }
+
+        // ============================================================
+        // 2. ГОТОВЫЕ МАРШРУТЫ
+        // ============================================================
+        val regularRoutes = db.getAllRoutes()
+
+        adapter = RoutesAdapter(regularRoutes) { route ->
 
             // Каждый готовый маршрут имеет свой скрипт финала
             val script = QuestScript(listOf(
@@ -54,6 +117,7 @@ class RoutesFragment : Fragment() {
             val bundle = Bundle().apply {
                 putSerializable("selected_attractions", ArrayList<Attraction>(route.attractions))
                 putSerializable("quest_script", script)
+                putBoolean("is_quest_route", false)
             }
             findNavController().navigate(R.id.action_routes_to_map, bundle)
         }
