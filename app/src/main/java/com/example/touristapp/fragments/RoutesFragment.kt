@@ -9,11 +9,13 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.touristapp.R
 import com.example.touristapp.adapters.RoutesAdapter
+import com.example.touristapp.data.RouteQuestData
 import com.example.touristapp.databinding.FragmentRoutesBinding
 import com.example.touristapp.models.Attraction
 import com.example.touristapp.models.QuestScript
 import com.example.touristapp.models.ScriptAction
 import com.example.touristapp.utils.DbConnection
+import com.example.touristapp.adapters.QuestChainsAdapter
 
 class RoutesFragment : Fragment() {
 
@@ -122,8 +124,8 @@ class RoutesFragment : Fragment() {
             findNavController().navigate(R.id.action_routes_to_map, bundle)
         }
 
-        binding.rvRoutes.layoutManager = LinearLayoutManager(requireContext())
-        binding.rvRoutes.adapter = adapter
+        binding.rvRegularRoutes.layoutManager = LinearLayoutManager(requireContext())
+        binding.rvRegularRoutes.adapter = adapter
     }
 
     override fun onDestroyView() {
