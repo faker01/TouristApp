@@ -10,19 +10,17 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.touristapp.R
 import com.example.touristapp.adapters.RoutesAdapter
 import com.example.touristapp.databinding.FragmentRoutesBinding
-import com.example.touristapp.models.Route
+import com.example.touristapp.models.Attraction
+import com.example.touristapp.models.QuestScript
+import com.example.touristapp.models.ScriptAction
+import com.example.touristapp.utils.DbConnection
 
 class RoutesFragment : Fragment() {
 
     private var _binding: FragmentRoutesBinding? = null
     private val binding get() = _binding!!
     private lateinit var adapter: RoutesAdapter
-
-    private val sampleRoutes = listOf(
-        Route("История", "2-3 ч", "4.5 км", "8 мест", listOf("Собор", "Рыбная деревня", "Королевские ворота")),
-        Route("Форты", "4-5 ч", "8.2 км", "6 мест", listOf("Форт №5", "Форт №3")),
-        Route("Музеи", "3-4 ч", "3.8 км", "5 мест", listOf("Музей океана", "Исторический музей"))
-    )
+    private lateinit var db: DbConnection
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -35,17 +33,27 @@ class RoutesFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        db = DbConnection(requireContext())
+
         binding.btnBack.setOnClickListener {
             findNavController().popBackStack()
         }
 
-        adapter = RoutesAdapter(sampleRoutes) { route ->
+        val routes = db.getAllRoutes()
+
+        adapter = RoutesAdapter(routes) { route ->
+
+            // Каждый готовый маршрут имеет свой скрипт финала
+            val script = QuestScript(listOf(
+                ScriptAction("toast",  text = "Маршрут «${route.name}» пройден!"),
+                ScriptAction("dialog", title = "🎉 Финиш!",
+                    text = "Вы прошли маршрут «${route.name}».\n" +
+                            "Протяжённость: ${route.distance}, время: ${route.duration}.")
+            ))
+
             val bundle = Bundle().apply {
-                putString("route_name", route.name)
-                putString("route_duration", route.duration)
-                putString("route_distance", route.distance)
-                putString("route_count", route.count)
-                putStringArrayList("route_attractions", ArrayList(route.attractions))
+                putSerializable("selected_attractions", ArrayList<Attraction>(route.attractions))
+                putSerializable("quest_script", script)
             }
             findNavController().navigate(R.id.action_routes_to_map, bundle)
         }
