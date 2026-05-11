@@ -11,9 +11,7 @@
         <action android:id="@+id/action_main_to_routes" app:destination="@id/routesFragment" />
         <action android:id="@+id/action_main_to_attractions" app:destination="@id/attractionsFragment" />
         <action android:id="@+id/action_main_to_map" app:destination="@id/mapFragment" />
-        <action android:id="@+id/action_main_to_quest" app:destination="@id/questFragment" />
-        <!-- Новое действие -->
-        <action android:id="@+id/action_main_to_prologue" app:destination="@id/prologueFragment" />
+        <!-- Удаляем action_main_to_quest и action_main_to_prologue -->
     </fragment>
 
     <fragment
@@ -21,6 +19,10 @@
         android:name="com.example.touristapp.fragments.RoutesFragment"
         android:label="RoutesFragment">
         <action android:id="@+id/action_routes_to_map" app:destination="@id/mapFragment" />
+        <!-- ДОБАВИТЬ переход к квесту -->
+        <action
+            android:id="@+id/action_routes_to_quest"
+            app:destination="@id/questFragment" />
     </fragment>
 
     <fragment
@@ -39,9 +41,20 @@
         android:id="@+id/questFragment"
         android:name="com.example.touristapp.fragments.QuestFragment"
         android:label="QuestFragment">
-        <action android:id="@+id/action_quest_to_final" app:destination="@id/questFinalFragment" />
+        <!-- ДОБАВИТЬ аргументы -->
+        <argument
+            android:name="csv_file_name"
+            app:argType="string"
+            android:defaultValue='"quest_data.csv"' />
+        <argument
+            android:name="quest_chain_id"
+            app:argType="integer"
+            android:defaultValue="0" />
+        <!-- Удаляем action_quest_to_final, так как QuestFinalFragment не нужен -->
     </fragment>
 
+    <!-- Удаляем questFinalFragment и prologueFragment -->
+    <!--
     <fragment
         android:id="@+id/questFinalFragment"
         android:name="com.example.touristapp.fragments.QuestFinalFragment"
@@ -55,6 +68,6 @@
             android:id="@+id/action_prologue_to_quest"
             app:destination="@id/questFragment" />
     </fragment>
-
+    -->
 
 </navigation>
