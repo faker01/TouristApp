@@ -12,7 +12,9 @@ class AttractionsAdapter(
 ) : RecyclerView.Adapter<AttractionsAdapter.AttractionViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AttractionViewHolder {
-        val binding = ItemAttractionBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val binding = ItemAttractionBinding.inflate(
+            LayoutInflater.from(parent.context), parent, false
+        )
         return AttractionViewHolder(binding)
     }
 
@@ -22,10 +24,16 @@ class AttractionsAdapter(
 
     override fun getItemCount() = attractions.size
 
-    class AttractionViewHolder(private val binding: ItemAttractionBinding) : RecyclerView.ViewHolder(binding.root) {
+    class AttractionViewHolder(
+        private val binding: ItemAttractionBinding
+    ) : RecyclerView.ViewHolder(binding.root) {
+
         fun bind(attraction: Attraction, onCheckChanged: (Attraction, Boolean) -> Unit) {
             binding.tvTitle.text = attraction.title
+
+            binding.cbSelect.setOnCheckedChangeListener(null)
             binding.cbSelect.isChecked = attraction.isSelected
+
             binding.cbSelect.setOnCheckedChangeListener { _, isChecked ->
                 onCheckChanged(attraction, isChecked)
             }

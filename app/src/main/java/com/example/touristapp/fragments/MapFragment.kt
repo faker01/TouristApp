@@ -21,7 +21,6 @@ import com.yandex.mapkit.geometry.Point
 import android.location.LocationListener
 import android.widget.Toast
 import com.example.touristapp.R
-import com.example.touristapp.data.AttractionsData
 import com.yandex.mapkit.RequestPoint
 import com.yandex.mapkit.RequestPointType
 import com.yandex.mapkit.directions.DirectionsFactory
@@ -39,8 +38,9 @@ import com.yandex.mapkit.map.MapObjectCollection
 import com.yandex.mapkit.map.MapObjectTapListener
 import com.yandex.runtime.image.ImageProvider
 import kotlinx.coroutines.Job
-import com.yandex.runtime.Error
 import com.example.touristapp.AppState
+import com.example.touristapp.utils.DbConnection
+import com.example.touristapp.models.QuestScript
 
 
 class MapFragment: Fragment(), LocationListener {
@@ -53,7 +53,11 @@ class MapFragment: Fragment(), LocationListener {
     private var adminMode: Boolean = false
 
     private var userPlacemark: PlacemarkMapObject? = null
-    private var attractionsCollection: MapObjectCollection? = null;
+    private var attractionsCollection: MapObjectCollection? = null
+    private lateinit var db: DbConnection
+
+    // Скрипт квеста, полученный из предыдущего фрагмента
+    private var questScript: QuestScript? = null
 
     private lateinit var drivingRouter: com.yandex.mapkit.directions.driving.DrivingRouter
     private var drivingSession: DrivingSession? = null
@@ -87,6 +91,9 @@ class MapFragment: Fragment(), LocationListener {
     // Следование за пользователем активно когда есть маршрут
     private var isFollowing = false
 
+    // Триггер приближения: радиус в метрах и множество уже посещённых id
+    private val PROXIMITY_RADIUS = 50f
+    private val visitedAttractionIds = mutableSetOf<Int>()
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -97,6 +104,8 @@ class MapFragment: Fragment(), LocationListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        db = DbConnection(requireContext())
 
         binding.mapView.onStart()
         MapKitFactory.getInstance().onStart()
@@ -120,16 +129,19 @@ class MapFragment: Fragment(), LocationListener {
         val selected = arguments
             ?.getSerializable("selected_attractions") as? List<Attraction>
 
+        questScript = arguments?.getSerializable("quest_script") as? QuestScript
+
         if (selected != null) {
             // пришли из AttractionsFragment — показываем выбранные места
             selectedAttractions = selected
+            visitedAttractionIds.clear()
             isFollowing = true
-            getAttractions(yandexMap, selected)
+            getAttractions(selected)
             drivingRouter = DirectionsFactory.getInstance().createDrivingRouter(DrivingRouterType.COMBINED)
             getRoute(yandexMap, getUserLocation(), selected)
         } else {
             // пришли просто с кнопки "Карта" — показываем все
-            getAttractions(yandexMap)
+            getAttractions()
         }
 
         binding.btnBack.setOnClickListener {
@@ -152,7 +164,7 @@ class MapFragment: Fragment(), LocationListener {
 
             binding.btnMoveRight.setOnClickListener {
                 // move=1: lon+
-                val newPos = setAdminUserLocation(yandexMap, 1) ?: return@setOnClickListener
+                val newPos = setAdminUserLocation(1) ?: return@setOnClickListener
                 yandexMap.move(CameraPosition(Point(newPos[0], newPos[1]), yandexMap.cameraPosition.zoom, 0.0f, 0.0f))
 
                 userPlacemark?.geometry = Point(newPos[0], newPos[1])
@@ -161,7 +173,7 @@ class MapFragment: Fragment(), LocationListener {
 
             binding.btnMoveUp.setOnClickListener {
                 // move=2: lat+
-                val newPos = setAdminUserLocation(yandexMap, 2) ?: return@setOnClickListener
+                val newPos = setAdminUserLocation(2) ?: return@setOnClickListener
                 yandexMap.move(CameraPosition(Point(newPos[0], newPos[1]), yandexMap.cameraPosition.zoom, 0.0f, 0.0f))
 
                 userPlacemark?.geometry = Point(newPos[0], newPos[1])
@@ -170,7 +182,7 @@ class MapFragment: Fragment(), LocationListener {
 
             binding.btnMoveLeft.setOnClickListener {
                 // move=3: lon-
-                val newPos = setAdminUserLocation(yandexMap, 3) ?: return@setOnClickListener
+                val newPos = setAdminUserLocation(3) ?: return@setOnClickListener
                 yandexMap.move(CameraPosition(Point(newPos[0], newPos[1]), yandexMap.cameraPosition.zoom, 0.0f, 0.0f))
 
                 userPlacemark?.geometry = Point(newPos[0], newPos[1])
@@ -179,7 +191,7 @@ class MapFragment: Fragment(), LocationListener {
 
             binding.btnMoveDown.setOnClickListener {
                 // move=4: lat-
-                val newPos = setAdminUserLocation(yandexMap, 4) ?: return@setOnClickListener
+                val newPos = setAdminUserLocation(4) ?: return@setOnClickListener
                 yandexMap.move(CameraPosition(Point(newPos[0], newPos[1]), yandexMap.cameraPosition.zoom, 0.0f, 0.0f))
 
                 userPlacemark?.geometry = Point(newPos[0], newPos[1])
@@ -218,7 +230,7 @@ class MapFragment: Fragment(), LocationListener {
         }
     }
 
-    private fun setAdminUserLocation(yandexMap: Map, move: Int): Array<Double>?{
+    private fun setAdminUserLocation(move: Int): Array<Double>?{
         if (move == 1){
             adminUserLocation[1] += 0.0001
             return adminUserLocation
@@ -288,6 +300,9 @@ class MapFragment: Fragment(), LocationListener {
 
         userPlacemark?.geometry = point
 
+        // Проверяем приближение к точкам маршрута
+        selectedAttractions?.let { checkProximity(lat, lon, it) }
+
         // Следование камеры за пользователем
         if (isFollowing) {
             binding.mapView.mapWindow.map.move(
@@ -306,6 +321,63 @@ class MapFragment: Fragment(), LocationListener {
         }
     }
 
+    private fun checkProximity(userLat: Double, userLon: Double, attractions: List<Attraction>) {
+        val userLocation = Location("").apply {
+            latitude  = userLat
+            longitude = userLon
+        }
+
+        attractions.forEach { attraction ->
+
+            val attractionLocation = Location("").apply {
+                latitude  = attraction.lat
+                longitude = attraction.lon
+            }
+
+            val distance = userLocation.distanceTo(attractionLocation)
+
+            if (distance <= PROXIMITY_RADIUS) {
+                onAttractionReached(attraction)
+            }
+        }
+    }
+
+    private fun onAttractionReached(attraction: Attraction) {
+        selectedAttractions = selectedAttractions?.minus(attraction)?.takeIf { it.isNotEmpty() }
+
+        Toast.makeText(
+            requireContext(),
+            "📍 Вы достигли: ${attraction.title}",
+            Toast.LENGTH_LONG
+        ).show()
+
+        if (selectedAttractions.isNullOrEmpty()) {
+            executeScript(questScript)
+        }
+    }
+
+    private fun executeScript(script: QuestScript?) {
+        if (script == null) {
+            Toast.makeText(requireContext(), "🎉 Маршрут завершён!", Toast.LENGTH_LONG).show()
+            return
+        }
+
+        script.actions.forEach { action ->
+            when (action.type) {
+                "toast" -> {
+                    Toast.makeText(requireContext(), action.text, Toast.LENGTH_LONG).show()
+                }
+                "dialog" -> {
+                    android.app.AlertDialog.Builder(requireContext())
+                        .setTitle(action.title)
+                        .setMessage(action.text)
+                        .setPositiveButton("OK", null)
+                        .show()
+                }
+            }
+        }
+    }
+
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         if (requestCode == 1001 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             startLocationUpdates()
@@ -313,7 +385,7 @@ class MapFragment: Fragment(), LocationListener {
     }
 
     // локация маршрута
-    private fun getAttractions(yandexMap: Map, selected: List<Attraction>? = null) {
+    private fun getAttractions(selected: List<Attraction>? = null) {
         val imageProvider = ImageProvider.fromResource(requireContext(), R.drawable.ic_marker)
 
         val attractions: List<Attraction>
@@ -322,7 +394,7 @@ class MapFragment: Fragment(), LocationListener {
             attractions = selected
         }
         else {
-            attractions = AttractionsData.all
+            attractions = db.getAllAttractions()
         }
 
         attractions.forEach { attraction ->
