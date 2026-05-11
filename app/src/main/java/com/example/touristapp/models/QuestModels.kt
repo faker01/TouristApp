@@ -10,6 +10,8 @@ enum class TaskType {
     MULTIPLE_CHOICE // Выбрать из вариантов
 }
 
+
+
 /**
  * Задание квеста
  *
@@ -25,7 +27,6 @@ data class QuestTask(
     val isBonus: Boolean = false,
     val hint: String = "",
     val hintCost: Int = 1,      // Стоимость подсказки в искрах
-    // НОВЫЕ ПОЛЯ (опционально, для связи с новой системой)
     val sourceId: String? = null // ID исходного TaskModel из CSV
 ) : Serializable
 
@@ -121,6 +122,50 @@ data class QuestProgress(
     }
 }
 
+
+/**
+ * Модель вступления (INTRO) - НОВАЯ
+ */
+data class IntroModel(
+    override val id: String,
+    override val type: ElementType = ElementType.INTRO,
+    val title: String,
+    val text: String,
+    val imageUrl: String? = null,
+    val nextElementId: String?,
+    override val trigger: Trigger? = null
+) : BaseQuestModel(id, type, trigger), Serializable
+
+
+/**
+ * Собранные данные квеста из CSV
+ */
+data class LoadedQuestData(
+    val intro: IntroModel?,
+    val dialogues: Map<String, DialogueModel>,
+    val tasks: Map<String, TaskModel>,
+    val results: Map<String, ResultModel>,
+    val startElementId: String?
+) {
+    fun getStartElement(): BaseQuestModel? = startElementId?.let { getElementById(it) }
+
+    fun getElementById(id: String): BaseQuestModel? {
+        return if (intro?.id == id) intro
+        else dialogues[id] ?: tasks[id] ?: results[id]
+    }
+
+    fun getNextElement(currentId: String): BaseQuestModel? {
+        val element = getElementById(currentId) ?: return null
+        val nextId = when (element) {
+            is IntroModel -> element.nextElementId
+            is DialogueModel -> element.nextElementId
+            is TaskModel -> element.nextElementId
+            else -> null
+        }
+        return nextId?.let { getElementById(it) }
+    }
+}
+
 /**
  * Фабрика для создания QuestProgress из новой системы
  */
@@ -133,33 +178,8 @@ object QuestProgressFactory {
         return QuestProgress(
             role = "Янтарный Детектив",
             sparks = 10,
-            currentDialogueId = questData.startDialogueId
+            currentDialogueId = null,  // теперь старт может быть intro
+            currentTaskId = null
         )
-    }
-}
-
-/**
- * Собранные данные квеста из CSV
- */
-data class LoadedQuestData(
-    val dialogues: Map<String, DialogueModel>,
-    val tasks: Map<String, TaskModel>,
-    val results: Map<String, ResultModel>,
-    val startDialogueId: String?
-) {
-    fun getStartDialogue(): DialogueModel? = startDialogueId?.let { dialogues[it] }
-
-    fun getElementById(id: String): BaseQuestModel? {
-        return dialogues[id] ?: tasks[id] ?: results[id]
-    }
-
-    fun getNextElement(currentId: String): BaseQuestModel? {
-        val element = getElementById(currentId) ?: return null
-        val nextId = when (element) {
-            is DialogueModel -> element.nextElementId
-            is TaskModel -> element.nextElementId
-            else -> null
-        }
-        return nextId?.let { getElementById(it) }
     }
 }
