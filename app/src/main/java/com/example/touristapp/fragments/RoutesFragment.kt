@@ -14,7 +14,7 @@ import com.example.touristapp.databinding.FragmentRoutesBinding
 import com.example.touristapp.models.Attraction
 import com.example.touristapp.models.QuestScript
 import com.example.touristapp.models.ScriptAction
-import com.example.touristapp.utils.DbConnection
+import com.example.touristapp.database.DbConnection
 import com.example.touristapp.adapters.QuestChainsAdapter
 
 class RoutesFragment : Fragment() {
@@ -61,7 +61,6 @@ class RoutesFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        // Обновляем список при возврате из квеста
         updateRoutesList()
     }
 
@@ -72,7 +71,7 @@ class RoutesFragment : Fragment() {
 
     private fun updateRoutesList() {
         // ============================================================
-        // 1. КВЕСТОВЫЕ ЦЕПОЧКИ
+        // КВЕСТОВЫЕ
         // ============================================================
         val allQuestChains = RouteQuestData.getQuestChains()
 
@@ -102,7 +101,7 @@ class RoutesFragment : Fragment() {
         }
 
         // ============================================================
-        // 2. ГОТОВЫЕ МАРШРУТЫ
+        // ГОТОВЫЕ МАРШРУТЫ
         // ============================================================
         val regularRoutes = db.getAllRoutes()
 

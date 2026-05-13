@@ -13,7 +13,7 @@ import com.example.touristapp.databinding.FragmentAttractionsBinding
 import com.example.touristapp.models.Attraction
 import com.example.touristapp.models.QuestScript
 import com.example.touristapp.models.ScriptAction
-import com.example.touristapp.utils.DbConnection
+import com.example.touristapp.database.DbConnection
 
 class AttractionsFragment : Fragment() {
 

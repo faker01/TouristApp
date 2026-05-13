@@ -39,7 +39,7 @@ import com.yandex.mapkit.map.MapObjectTapListener
 import com.yandex.runtime.image.ImageProvider
 import kotlinx.coroutines.Job
 import com.example.touristapp.AppState
-import com.example.touristapp.utils.DbConnection
+import com.example.touristapp.database.DbConnection
 import com.example.touristapp.models.QuestScript
 
 
