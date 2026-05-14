@@ -1,5 +1,6 @@
 package com.example.touristapp.database
 
+import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
@@ -43,12 +44,14 @@ class DbConnection(private val context: Context) : SQLiteOpenHelper(
 
         // Таблица сохранений квеста
         const val TABLE_QUEST_PROGRESS = "quest_progress"
-        const val COL_QUEST_ID = "quest_id"
-        const val COL_CURRENT_STEP = "current_step"
+        const val COL_QUEST_QUEST_LINE_ID = "quest_line"
+        const val COL_QUEST_QUEST_ID = "quest_id"
+        const val COL_QUEST_CURRENT_STEP = "current_step"
 
         // Таблица общих данных квеста
         const val TABLE_QUEST_DATA = "quest_data"
-        const val COL_NUM_OF_FRAGMENTS = "num_of_fragments"
+        const val COL_QUEST_DATA_QUEST_LINE_ID = "quest_line_id"
+        const val COL_QUEST_DATA_NUM_OF_HINTS = "num_of_hints"
     }
 
     // --------------------------------------------------------
@@ -200,5 +203,88 @@ class DbConnection(private val context: Context) : SQLiteOpenHelper(
             Log.e("DbConnection", "Ошибка getAttractionsForRoute: ${e.message}")
         }
         return list
+    }
+
+    fun getQuestProgressById(questLineId: String, questId: String): Int{
+        try {
+            val cursor = readableDatabase.query(
+                TABLE_QUEST_PROGRESS, null,
+                "$COL_QUEST_QUEST_ID = ? AND $COL_QUEST_QUEST_LINE_ID = ?", arrayOf(questId, questLineId),
+                null, null, null
+            )
+            cursor.use {
+                if (it.moveToFirst())
+                {
+                    return it.getInt(it.getColumnIndexOrThrow(COL_QUEST_CURRENT_STEP))
+                }
+                else null
+            }
+        } catch (e: Exception) {
+            Log.e("DbConnection", "Ошибка getQuestProgressById: ${e.message}")
+        }
+        return 0
+    }
+
+    fun updateQuestProgress(questLineId: String, questId: String, step: Int): Int{
+        val cv = ContentValues()
+        cv.put(COL_QUEST_CURRENT_STEP, step)
+
+        val result = writableDatabase.update(
+            TABLE_QUEST_PROGRESS, cv, "$COL_QUEST_QUEST_LINE_ID = ? AND $COL_QUEST_QUEST_ID = ?", arrayOf(questLineId, questId),
+        )
+        return result
+    }
+
+    fun addQuestProgress(questLineId: String, questId: String): Long{
+        val cv = ContentValues()
+        cv.put(COL_QUEST_QUEST_LINE_ID, questLineId)
+        cv.put(COL_QUEST_QUEST_ID, questId)
+        cv.put(COL_QUEST_CURRENT_STEP, 0)
+
+        val result = writableDatabase.insert(TABLE_QUEST_PROGRESS, null,cv)
+
+        return result
+    }
+
+    fun getQuestData(questLineId: String): Int{
+        try {
+            val cursor = readableDatabase.query(
+                TABLE_QUEST_DATA, null,
+                "$COL_QUEST_DATA_QUEST_LINE_ID = ?", arrayOf(questLineId),
+                null, null, null
+            )
+            cursor.use {
+                if (it.moveToFirst())
+                {
+                    return it.getInt(it.getColumnIndexOrThrow(COL_QUEST_DATA_NUM_OF_HINTS))
+                }
+                else null
+            }
+        } catch (e: Exception) {
+            Log.e("DbConnection", "Ошибка getQuestData: ${e.message}")
+        }
+        return 0
+    }
+
+    fun updateQuestData(questLineId: String, hintCount: Int): Int{
+        val cv = ContentValues()
+        cv.put(COL_QUEST_DATA_NUM_OF_HINTS, hintCount)
+
+        val result = writableDatabase.update(
+            TABLE_QUEST_DATA, cv, "$COL_QUEST_DATA_QUEST_LINE_ID = ?", arrayOf(questLineId),
+        )
+        return result
+    }
+
+    fun addQuestData(questLineId: String, hintCount: Int): Long {
+        val cv = ContentValues()
+        cv.put(COL_QUEST_DATA_QUEST_LINE_ID, questLineId)
+        cv.put(COL_QUEST_DATA_NUM_OF_HINTS, hintCount)
+
+        val result = writableDatabase.insert(
+            TABLE_QUEST_DATA, null, cv
+        )
+
+        return result
     }
 }
