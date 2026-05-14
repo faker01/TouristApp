@@ -60,6 +60,10 @@ class AttractionsFragment : Fragment() {
             }
         }
 
+        binding.btnBack.setOnClickListener {
+            findNavController().popBackStack()
+        }
+
         adapter = AttractionsAdapter(attractionsList) { attraction, isChecked ->
             attraction.isSelected = isChecked
         }

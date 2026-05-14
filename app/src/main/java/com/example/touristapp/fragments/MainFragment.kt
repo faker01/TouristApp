@@ -1,5 +1,6 @@
 package com.example.touristapp.fragments
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -20,6 +21,9 @@ class MainFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentMainBinding.inflate(inflater, container, false)
+
+        if (AppState.isAdmin) binding.btnAdmin.text = getString(R.string.dev_mode)
+
         return binding.root
     }
 
@@ -41,20 +45,14 @@ class MainFragment : Fragment() {
             findNavController().navigate(R.id.action_main_to_map)
         }
 
-        // ============================================================
-        // КНОПКА "КВЕСТ" — УДАЛЕНА (теперь квесты открываются через маршруты)
-        // Весь блок с btnQuest можно удалить или закомментировать
-        // ============================================================
-        // binding.btnQuest.setOnClickListener { ... }
-
-        // Кнопка "Admin" (оставляем без изменений)
+        // Кнопка "Admin"
         binding.btnAdmin.setOnClickListener {
             if (AppState.isAdmin) {
                 AppState.isAdmin = false
-                binding.btnAdmin.text = "Admin:off"
+                binding.btnAdmin.text = getString(R.string.app_name_full)
             } else {
                 AppState.isAdmin = true
-                binding.btnAdmin.text = "Admin:on"
+                binding.btnAdmin.text = getString(R.string.dev_mode)
             }
         }
     }

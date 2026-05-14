@@ -41,9 +41,14 @@ class DbConnection(private val context: Context) : SQLiteOpenHelper(
         const val COL_RA_ATT_ID = "attraction_id"
         const val COL_RA_ORDER = "sort_order"
 
+        // Таблица сохранений квеста
         const val TABLE_QUEST_PROGRESS = "quest_progress"
         const val COL_QUEST_ID = "quest_id"
         const val COL_CURRENT_STEP = "current_step"
+
+        // Таблица общих данных квеста
+        const val TABLE_QUEST_DATA = "quest_data"
+        const val COL_NUM_OF_FRAGMENTS = "num_of_fragments"
     }
 
     // --------------------------------------------------------

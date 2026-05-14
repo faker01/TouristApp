@@ -1,4 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">TouristKldApp</string>
+    <string name="app_name_full">БалтГид</string>
+    <string name="app_description">Путешествия по Калининграду</string>
+    <string name="dev_mode">devMode:on</string>
+    <string name="routes">маршруты</string>
+    <string name="create_route">создать маршрут</string>
+    <string name="map">карта</string>
+    <string name="back_button">Назад</string>
+    <string name="minus_button">-</string>
+    <string name="plus_button">+</string>
+    <string name="done_button">Готово</string>
+    <string name="quest_routes">Квестовые маршруты</string>
+    <string name="regular_routes">Туристические маршруты</string>
+
 </resources>

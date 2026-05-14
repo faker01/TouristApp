@@ -27,7 +27,7 @@ class RoutesAdapter(
             binding.tvRouteName.text = route.name
             binding.tvDuration.text = "⏱ ${route.duration}"
             binding.tvDistance.text = "📏 ${route.distance}"
-            binding.tvAttractionsCount.text = "📍 ${route.count}"
+            binding.tvAttractionsCount.text = "📍 ${route.count} точек"
             binding.root.setOnClickListener { onClick(route) }
         }
     }

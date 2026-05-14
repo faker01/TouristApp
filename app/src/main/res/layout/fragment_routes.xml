@@ -10,23 +10,13 @@
         android:layout_height="?attr/actionBarSize"
         android:background="#22000000">
 
-        <ImageButton
+        <Button
             android:id="@+id/btn_back"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_background"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Назад" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Маршруты"
-            android:textColor="@android:color/white"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:gravity="center" />
+            android:backgroundTint="@color/gray"
+            android:text="@string/back_button"
+            android:textColor="@color/white"/>
     </androidx.appcompat.widget.Toolbar>
 
     <ScrollView
@@ -39,43 +29,37 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Заголовок квестовых маршрутов -->
             <TextView
                 android:id="@+id/quest_section"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="🎯 Квестовые маршруты"
+                android:text="@string/quest_routes"
                 android:textColor="@android:color/white"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:layout_marginBottom="8dp"
                 android:visibility="gone" />
 
-            <!-- Список квестовых маршрутов -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rv_quest_routes"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp" />
 
-            <!-- Заголовок обычных маршрутов -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="🚶 Обычные маршруты"
+                android:text="@string/regular_routes"
                 android:textColor="@android:color/white"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:layout_marginBottom="8dp" />
 
-            <!-- Список обычных маршрутов -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rv_regular_routes"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
         </LinearLayout>
-
     </ScrollView>
-
 </LinearLayout>

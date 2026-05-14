@@ -9,30 +9,22 @@
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="#22000000">
-
-        <ImageButton
+        <Button
             android:id="@+id/btn_back"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_background"
-            android:background="?attr/selectableItemBackgroundBorderless" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Выберите места"
-            android:textColor="@android:color/white"
-            android:textSize="20sp"
-            android:gravity="center" />
+            android:backgroundTint="@color/gray"
+            android:text="@string/back_button"
+            android:textColor="@color/white"/>
 
         <Button
             android:id="@+id/btn_done"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Готово"
-            android:backgroundTint="#4CAF50"
-            android:textColor="@android:color/white" />
+            android:layout_gravity="end"
+            android:text="@string/done_button"
+            android:backgroundTint="@color/gray"
+            android:textColor="@color/white"/>
     </androidx.appcompat.widget.Toolbar>
 
     <androidx.recyclerview.widget.RecyclerView
