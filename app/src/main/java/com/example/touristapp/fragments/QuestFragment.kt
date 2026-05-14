@@ -133,6 +133,7 @@ class QuestFragment : Fragment() {
         }
     }
 
+    // функция написания текста постепенно
     private fun animateTextTyping(textView: TextView, fullText: String, delayPerChar: Long, onComplete: () -> Unit) {
         textView.text = ""
         val handler = Handler(Looper.getMainLooper())
@@ -156,6 +157,7 @@ class QuestFragment : Fragment() {
     // ДИАЛОГИ
     // ============================================================
 
+    // отобразить диалог (модель диалога) ПЕРЕДЕЛАТЬ НАПИСАНИЕ НА СТРАНИЦЕ
     private fun showDialogue(dialogue: DialogueModel) {
         hideAllInputs()
         if (dialogue.sparksReward > 0) {
@@ -177,6 +179,7 @@ class QuestFragment : Fragment() {
     // ЗАДАНИЯ
     // ============================================================
 
+    // отобразить задание (Таск)
     private fun showTask(task: TaskModel) {
         hideAllInputs()
         btnNextTask.visibility = View.GONE
@@ -251,16 +254,21 @@ class QuestFragment : Fragment() {
                 else -> null
             }
 
+
             // ============================================================
             // ЗАГЛУШКА КАРТЫ
             // Проверяем, нужно ли показывать карту (разные триггеры)
             // ============================================================
-            val shouldShowMap = shouldShowMapForNext(task.trigger, nextTrigger)
+            val ShowMap = ShowMapForNext(task.trigger, nextTrigger)
 
-            if (shouldShowMap) {
-                // Показываем заглушку карты перед следующим заданием
-                // TODO: ЗДЕСЬ БУДЕТ ИНТЕГРАЦИЯ С КАРТОЙ
-                // Когда карта будет готова, замени showMapPlaceholder на реальный переход
+            if (ShowMap) {
+                val bundle = Bundle().apply {
+                    putSerializable("selected_attractions", ArrayList(selected))
+                    putSerializable("quest_script", showMapPlaceholder(nextElement))
+                }
+
+                findNavController().navigate(R.id.action_quest_to_map, bundle)
+
                 showMapPlaceholder(nextElement)
             } else {
                 // Сразу показываем кнопку "Далее"
@@ -297,7 +305,7 @@ class QuestFragment : Fragment() {
      * Определяет, нужно ли показывать карту при переходе к следующему заданию
      * @return true если координаты триггеров разные
      */
-    private fun shouldShowMapForNext(currentTrigger: Trigger?, nextTrigger: Trigger?): Boolean {
+    private fun ShowMapForNext(currentTrigger: Trigger?, nextTrigger: Trigger?): Boolean {
         // Если нет следующего триггера или нет текущего — карта не нужна
         if (currentTrigger == null || nextTrigger == null) return false
 

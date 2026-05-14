@@ -1,6 +1,5 @@
 package com.example.touristapp.fragments
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -22,7 +21,7 @@ class MainFragment : Fragment() {
     ): View {
         _binding = FragmentMainBinding.inflate(inflater, container, false)
 
-        if (AppState.isAdmin) binding.btnAdmin.text = getString(R.string.dev_mode)
+        if (AppState.isDev) binding.btnAdmin.text = getString(R.string.dev_mode)
 
         return binding.root
     }
@@ -47,11 +46,11 @@ class MainFragment : Fragment() {
 
         // Кнопка "Admin"
         binding.btnAdmin.setOnClickListener {
-            if (AppState.isAdmin) {
-                AppState.isAdmin = false
+            if (AppState.isDev) {
+                AppState.isDev = false
                 binding.btnAdmin.text = getString(R.string.app_name_full)
             } else {
-                AppState.isAdmin = true
+                AppState.isDev = true
                 binding.btnAdmin.text = getString(R.string.dev_mode)
             }
         }

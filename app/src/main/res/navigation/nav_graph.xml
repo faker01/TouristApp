@@ -45,6 +45,8 @@
             android:name="quest_chain_id"
             app:argType="integer"
             android:defaultValue="0" />
+
+        <action android:id="@+id/action_quest_to_map" app:destination="@+id/mapFragment"/>
     </fragment>
 
 </navigation>

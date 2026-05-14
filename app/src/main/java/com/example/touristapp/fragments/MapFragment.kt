@@ -24,7 +24,6 @@ import android.os.Build
 import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
-import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import com.example.touristapp.R
 import com.yandex.mapkit.RequestPoint
@@ -77,7 +76,7 @@ class MapFragment: Fragment(), LocationListener {
         }
     }
     private lateinit var adminUserLocation: Array<Double>
-    private var adminMode: Boolean = false
+    private var DevMode: Boolean = false
     private val tapListeners = mutableListOf<MapObjectTapListener>()
 
     private var userPlacemark: PlacemarkMapObject? = null
@@ -102,7 +101,8 @@ class MapFragment: Fragment(), LocationListener {
         }
 
         override fun onDrivingRoutesError(error: com.yandex.runtime.Error) {
-            Toast.makeText(requireContext(), "Ошибка маршрута", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Ошибка построения маршрута", Toast.LENGTH_SHORT).show()
+            Log.e("MapFragment::DrivingRoute", error.toString())
         }
     }
     private var currentPolyline: PolylineMapObject? = null
@@ -145,8 +145,8 @@ class MapFragment: Fragment(), LocationListener {
 
         attractionsCollection = yandexMap.mapObjects.addCollection()
 
-        adminMode = AppState.isAdmin
-        if (adminMode)
+        DevMode = AppState.isDev
+        if (DevMode)
         {
             adminUserLocation = getUserLocation() ?: arrayOf(54.710325, 20.510053)
         }
@@ -197,8 +197,8 @@ class MapFragment: Fragment(), LocationListener {
             yandexMap.move(CameraPosition(userPlacemark?.geometry ?: cam.target, cam.zoom, 0.0f, 0.0f))
         }
 
-        // Показываем крестовину только в adminMode
-        if (adminMode) {
+        // Показываем крестовину только в DevMode
+        if (DevMode) {
             binding.layoutAdminControls.visibility = View.VISIBLE
 
             binding.btnMoveRight.setOnClickListener {
@@ -340,7 +340,7 @@ class MapFragment: Fragment(), LocationListener {
     }
 
     private fun getUserLocation(): Array<Double>? {
-        if (adminMode && ::adminUserLocation.isInitialized && adminUserLocation.isNotEmpty())
+        if (DevMode && ::adminUserLocation.isInitialized && adminUserLocation.isNotEmpty())
         {
             return adminUserLocation
         }
@@ -369,7 +369,7 @@ class MapFragment: Fragment(), LocationListener {
     }
 
     override fun onLocationChanged(location: Location) {
-        if (adminMode) return
+        if (DevMode) return
 
         updateLocation(location.latitude, location.longitude)
     }

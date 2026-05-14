@@ -14,4 +14,11 @@
     <string name="quest_routes">Квестовые маршруты</string>
     <string name="regular_routes">Туристические маршруты</string>
 
+    <string name="quest">Квест</string>
+    <string name="next_page">Следующая страница</string>
+    <string name="use_hint">Использовать подсказку</string>
+    <string name="hints">Подсказки</string>
+    <string name="task_name">Название задания</string>
+    <string name="task_text">Текст задания</string>
+    <string name="answer">Ответ</string>
 </resources>
